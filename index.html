@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Docentes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            transition: all 0.3s ease-in-out;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #007bff, #00c6ff);
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+
+        label, .checkbox-group label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .checkbox-group {
+            text-align: left;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9f5ff;
+            border-radius: 5px;
+            text-align: left;
+            border: 1px solid #007bff;
+        }
+
+        .spinner {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .dark-mode {
+            background: #121212;
+            color: white;
+        }
+
+        .dark-mode .container {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        .dark-mode input, .dark-mode .checkbox-group {
+            background: #333;
+            color: white;
+            border-color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Consulta de Docentes</h2>
+        <button onclick="toggleDarkMode()">🌙 Modo Oscuro</button>
+        <label for="dni">Ingrese DNI:</label>
+        <input type="text" id="dni" placeholder="Ejemplo: 46386459">
+        
+        <h3>Seleccione los datos a consultar:</h3>
+        <div class="checkbox-group">
+            <input type="checkbox" id="todos" onclick="seleccionarTodos()"> <label for="todos"><strong>Todos</strong></label><br>
+            <input type="checkbox" class="campo" value="NOMBRES"> Nombre<br>
+            <input type="checkbox" class="campo" value="CONDICIÓN"> Condición<br>
+            <input type="checkbox" class="campo" value="WhatsApp"> WhatsApp<br>
+            <input type="checkbox" class="campo" value="Correo"> Correo<br>
+            <input type="checkbox" class="campo" value="Horas"> Horas<br>
+            <input type="checkbox" class="campo" value="Concepto"> Concepto<br>
+            <input type="checkbox" class="campo" value="Monto"> Monto<br>
+        </div>
+
+        <button onclick="buscarDocente()">Buscar</button>
+        <div class="spinner" id="spinner"></div>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        function seleccionarTodos() {
+            const checkboxes = document.querySelectorAll(".campo");
+            const todosChecked = document.getElementById("todos").checked;
+            checkboxes.forEach(cb => cb.checked = todosChecked);
+        }
+
+        async function buscarDocente() {
+    const dni = document.getElementById("dni").value;
+    if (!dni) {
+        alert("Ingrese un DNI");
+        return;
+    }
+
+    const checkboxes = document.querySelectorAll(".campo:checked");
+    let campos = Array.from(checkboxes).map(cb => cb.value);
+
+    if (campos.length === 0) {
+        alert("Seleccione al menos un dato para consultar");
+        return;
+    }
+
+    document.getElementById("spinner").style.display = "block";
+
+    // Agregar el token en la consulta
+    const token = "hsmZMBeLS:V8qR;]\"#gGwdcFrp+{D*YU"; 
+    const url = `https://script.google.com/macros/s/AKfycbytdoQCCOTswNH5ijGe6-nywFgD31JeeblOTr9NtvFGTWhJax235pqvaHRRW8qAFrdP/exec?dni=${dni}&campos=${campos.join(",")}&token=${token}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        document.getElementById("spinner").style.display = "none";
+        if (data.error) {
+            document.getElementById("resultado").innerHTML = `<p style='color: red'>${data.error}</p>`;
+        } else {
+            let resultadoHTML = "<h3>Resultados:</h3>";
+            campos.forEach(campo => {
+                if (data[campo]) {
+                    resultadoHTML += `<p><strong>${campo}:</strong> ${data[campo]}</p>`;
+                }
+            });
+            document.getElementById("resultado").innerHTML = resultadoHTML;
+        }
+    } catch (error) {
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("resultado").innerHTML = "<p style='color: red'>Error en la consulta</p>";
+    }
+
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+    </script>
+
+</body>
+</html>
