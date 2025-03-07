@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Docentes</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script defer src="login.js"></script>
     <style>
         * {
             margin: 0;
@@ -69,6 +72,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -114,6 +118,18 @@
             color: white;
             border-color: #444;
         }
+
+        /* Estilos para el botón de Cerrar Sesión */
+        #logout {
+            background: #dc3545;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        #logout:hover {
+            background: #c82333;
+        }
+
     </style>
 </head>
 <body>
@@ -139,6 +155,7 @@
         <button onclick="buscarDocente()">Buscar</button>
         <div class="spinner" id="spinner"></div>
         <div id="resultado"></div>
+        <button id="logout">Cerrar Sesión</button>
     </div>
 
     <script>
@@ -149,53 +166,51 @@
         }
 
         async function buscarDocente() {
-    const dni = document.getElementById("dni").value;
-    if (!dni) {
-        alert("Ingrese un DNI");
-        return;
-    }
+            const dni = document.getElementById("dni").value;
+            if (!dni) {
+                alert("Ingrese un DNI");
+                return;
+            }
 
-    const checkboxes = document.querySelectorAll(".campo:checked");
-    let campos = Array.from(checkboxes).map(cb => cb.value);
+            const checkboxes = document.querySelectorAll(".campo:checked");
+            let campos = Array.from(checkboxes).map(cb => cb.value);
 
-    if (campos.length === 0) {
-        alert("Seleccione al menos un dato para consultar");
-        return;
-    }
+            if (campos.length === 0) {
+                alert("Seleccione al menos un dato para consultar");
+                return;
+            }
 
-    document.getElementById("spinner").style.display = "block";
+            document.getElementById("spinner").style.display = "block";
 
-    // Agregar el token en la consulta
-    const token = "hsmZMBeLS:V8qR;]\"#gGwdcFrp+{D*YU"; 
-    const url = `https://script.google.com/macros/s/AKfycbytdoQCCOTswNH5ijGe6-nywFgD31JeeblOTr9NtvFGTWhJax235pqvaHRRW8qAFrdP/exec?dni=${dni}&campos=${campos.join(",")}&token=${token}`;
+            // Agregar el token en la consulta
+            const token = "hsmZMBeLS:V8qR;]\"#gGwdcFrp+{D*YU"; 
+            const url = `https://script.google.com/macros/s/AKfycbytdoQCCOTswNH5ijGe6-nywFgD31JeeblOTr9NtvFGTWhJax235pqvaHRRW8qAFrdP/exec?dni=${dni}&campos=${campos.join(",")}&token=${token}`;
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-        document.getElementById("spinner").style.display = "none";
-        if (data.error) {
-            document.getElementById("resultado").innerHTML = `<p style='color: red'>${data.error}</p>`;
-        } else {
-            let resultadoHTML = "<h3>Resultados:</h3>";
-            campos.forEach(campo => {
-                if (data[campo]) {
-                    resultadoHTML += `<p><strong>${campo}:</strong> ${data[campo]}</p>`;
+                document.getElementById("spinner").style.display = "none";
+                if (data.error) {
+                    document.getElementById("resultado").innerHTML = `<p style='color: red'>${data.error}</p>`;
+                } else {
+                    let resultadoHTML = "<h3>Resultados:</h3>";
+                    campos.forEach(campo => {
+                        if (data[campo]) {
+                            resultadoHTML += `<p><strong>${campo}:</strong> ${data[campo]}</p>`;
+                        }
+                    });
+                    document.getElementById("resultado").innerHTML = resultadoHTML;
                 }
-            });
-            document.getElementById("resultado").innerHTML = resultadoHTML;
-        }
-    } catch (error) {
-        document.getElementById("spinner").style.display = "none";
-        document.getElementById("resultado").innerHTML = "<p style='color: red'>Error en la consulta</p>";
-    }
-
+            } catch (error) {
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("resultado").innerHTML = "<p style='color: red'>Error en la consulta</p>";
+            }
         }
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
         }
     </script>
-
 </body>
 </html>
